@@ -1,0 +1,18 @@
+export component PrevButton inherits Rectangle {
+    in property <int> id;
+    in property <bool> isPausing;
+    in property <int> idPlaying;
+
+    width: 32px;
+    height: 32px;
+    border-color: grey;
+    border-width: 1px;
+    border-radius: self.width / 2;
+
+    opacity: 0.7;
+    Image {
+        width: 16px;
+        height: 16px;
+        source: @image-url("../icons/prev.svg");
+    }
+}
