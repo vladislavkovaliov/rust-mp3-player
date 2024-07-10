@@ -323,5 +323,13 @@ fn main() -> Result<(), slint::PlatformError> {
         ui_weak_clone.unwrap().set_volume((current_volume * 100.0) as i32);
     });
 
+    ui.on_prev(move || {
+        println!("on_prev");
+    });
+
+    ui.on_next(move || {
+        println!("on_next");
+    });
+
     ui.run()
 }

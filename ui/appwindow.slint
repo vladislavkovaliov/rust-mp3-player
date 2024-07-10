@@ -40,12 +40,14 @@ export component AppWindow inherits Window {
 
     callback selectPath();
     callback selectRecord(int, string);
-    // 464
+
     callback stop();
     callback play();
     callback pause();
     callback volumeUp();
     callback volumeDown();
+    callback prev();
+    callback next();
 
     width: 480px;
     height: 768px;
@@ -318,7 +320,7 @@ export component AppWindow inherits Window {
                         width: 32px;
                         height: 32px;
                         clicked => {
-                            // root.prev()
+                            root.prev();
                         }
                         PrevButton {
                             id: root.idPlaying;
@@ -331,7 +333,7 @@ export component AppWindow inherits Window {
                         width: 32px;
                         height: 32px;
                         clicked => {
-                            //root.next();
+                            root.next();
                         }
                         NextButton {
                             id: root.idPlaying;
