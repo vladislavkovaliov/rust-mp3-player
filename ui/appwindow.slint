@@ -10,7 +10,10 @@ import { StopButton } from "./stop.slint";
 import { PrevButton } from "./prevButton.slint";
 import { NextButton } from "./nextButton.slint";
 import { EllipsisText } from "ellipsisText.slint";
-import { OpenFolderButton } from "openFolder.slint";
+import { OpenFolderButton } from "./openFolder.slint";
+import { VolumeMute } from "./volumeMute.slint";
+import { VolumeMinus } from "./volumeMinus.slint";
+import { VolumeUp } from "./volumeUp.slint";
 
 export struct Record  {
     id: int,
@@ -46,6 +49,7 @@ export component AppWindow inherits Window {
     callback pause();
     callback volumeUp();
     callback volumeDown();
+    callback volumeMute();
     callback prev();
     callback next();
 
@@ -88,22 +92,6 @@ export component AppWindow inherits Window {
             }
         }
 
-        HorizontalBox {
-            Button {
-                text: "volume up";
-                clicked => {
-                    root.volumeUp();
-                }
-            }
-
-            Button {
-                text: "volume down";
-                clicked => {
-                    root.volumeDown();
-                }
-            }
-        }
-
         VerticalBox {
             HorizontalLayout {
                 Text {
@@ -112,13 +100,43 @@ export component AppWindow inherits Window {
                     color: black;
                 }
 
-                TouchArea {
-                    width: 16px;
-                    height: 16px;
-                    clicked => {
-                        root.selectPath();
+                HorizontalLayout {
+                    spacing: 8px;
+                    TouchArea {
+                        width: 32px;
+                        height: 32px;
+                        clicked => {
+                            root.volumeMute();
+                        }
+                        VolumeMute { }
                     }
-                    OpenFolderButton { }
+
+                    TouchArea {
+                        width: 32px;
+                        height: 32px;
+                        clicked => {
+                            root.volumeDown();
+                        }
+                        VolumeMinus { }
+                    }
+
+                    TouchArea {
+                        width: 32px;
+                        height: 32px;
+                        clicked => {
+                            root.volumeUp();
+                        }
+                        VolumeUp { }
+                    }
+
+                    TouchArea {
+                        width: 32px;
+                        height: 32px;
+                        clicked => {
+                            root.selectPath();
+                        }
+                        OpenFolderButton { }
+                    }
                 }
             }
 

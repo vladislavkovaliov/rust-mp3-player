@@ -162,16 +162,12 @@ fn main() -> Result<(), slint::PlatformError> {
 
                         counter = counter + 1;
                     }
-
-                    
                 }
             }
 
             let mut max_list_count = max_list_count_clone.lock().unwrap();
 
             *max_list_count = counter;
-
-            println!("max_list_count {:?}", max_list_count);
 
             let file_list_model = Rc::new(VecModel::from(file_list));
 
@@ -265,7 +261,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let ui_weak_clone  = Arc::clone(&arc_ui);
     let sink_clone = Arc::clone(&arc_sink);
-
+    
     ui.on_play(move || {
         let is_playing = ui_weak_clone.unwrap().get_isPlaying();
         let is_pausing = ui_weak_clone.unwrap().get_isPausing();
@@ -330,6 +326,31 @@ fn main() -> Result<(), slint::PlatformError> {
         }
 
         ui_weak_clone.unwrap().set_volume((current_volume * 100.0) as i32);
+    });
+
+    let ui_weak_clone  = Arc::clone(&arc_ui);
+    let sink_clone = Arc::clone(&arc_sink);
+    let mut prev_volume = 0.0;
+
+    ui.on_volumeMute(move || {
+        let current_volume = sink_clone.volume();
+
+        if current_volume != 0.0 {
+            prev_volume = current_volume;
+
+        }
+        
+        let mut actual_volume = 0.0;
+
+        if current_volume == 0.0  {
+            actual_volume = prev_volume;
+        }
+
+        sink_clone.set_volume(actual_volume);
+
+        let _ = ui_weak_clone.upgrade_in_event_loop(move |window| {
+            window.set_volume((actual_volume * 100.0) as i32);
+        });
     });
 
     let ui_weak_clone  = Arc::clone(&arc_ui);
