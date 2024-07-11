@@ -1,6 +1,6 @@
 use rfd::FileDialog;
-use std::{fs, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc }, time::Duration};
-use slint::{ComponentHandle, SharedString};
+use std::{fs, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex }, time::Duration};
+use slint::{ComponentHandle, Model, ModelRc, SharedString};
 use std::rc::Rc;
 use slint::VecModel;
 use std::io;
@@ -35,6 +35,8 @@ fn format_duration(duration: Duration) -> String {
 
 fn main() -> Result<(), slint::PlatformError> {
     let const_init_volume = round(0.1);
+    let max_list_count = Arc::new(Mutex::new(0));
+
     let (tx_total_duration, rx_total_duration) = mpsc::channel::<u64>();
 
     let ui = AppWindow::new()?;
@@ -126,7 +128,8 @@ fn main() -> Result<(), slint::PlatformError> {
     // });
 
     let ui_weak_clone  = Arc::clone(&arc_ui);
-    
+    let max_list_count_clone = Arc::clone(&max_list_count);
+
     ui.on_selectPath(move || {
         if let Some(path) = FileDialog::new().pick_folder() {
             let path = path.to_string_lossy().to_string();
@@ -153,15 +156,22 @@ fn main() -> Result<(), slint::PlatformError> {
                             filePath: SharedString::from(path.to_string_lossy().to_string()),
                             fileName: SharedString::from(path.file_stem().unwrap().to_string_lossy().to_string()),
                             duration: SharedString::from(file_duration.to_string()),
-
                         };
 
                         file_list.push(record);
 
                         counter = counter + 1;
                     }
+
+                    
                 }
             }
+
+            let mut max_list_count = max_list_count_clone.lock().unwrap();
+
+            *max_list_count = counter;
+
+            println!("max_list_count {:?}", max_list_count);
 
             let file_list_model = Rc::new(VecModel::from(file_list));
 
@@ -171,6 +181,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let ui_weak_clone  = Arc::clone(&arc_ui);
     let sink_clone = Arc::clone(&arc_sink);
+    let tx_total_duration_clone = tx_total_duration.clone();
 
     ui.on_selectRecord(move |id, text| {
         let playing_id = ui_weak_clone.unwrap().get_idPlaying();
@@ -226,11 +237,9 @@ fn main() -> Result<(), slint::PlatformError> {
         sink_clone.append(source);
         sink_clone.play();
 
-        let tx_total_duration_clone = tx_total_duration.clone();
-
         ui_weak_clone.unwrap().set_idPlaying(id as i32);
         ui_weak_clone.unwrap().set_idPausing(id as i32);
-       
+
         ui_weak_clone.unwrap().set_isPlaying(true);
         ui_weak_clone.unwrap().set_isPausing(false);
         ui_weak_clone.unwrap().set_expanded(true);
@@ -321,6 +330,122 @@ fn main() -> Result<(), slint::PlatformError> {
         }
 
         ui_weak_clone.unwrap().set_volume((current_volume * 100.0) as i32);
+    });
+
+    let ui_weak_clone  = Arc::clone(&arc_ui);
+    let sink_clone = Arc::clone(&arc_sink);
+    let max_list_count_clone = Arc::clone(&max_list_count);
+    let tx_total_duration_clone = tx_total_duration.clone();
+
+    ui.on_prev(move || {
+        let max_list_count = max_list_count_clone.lock().unwrap();
+        let list: ModelRc<Record> = ui_weak_clone.unwrap().get_list();
+        let playing_id = ui_weak_clone.unwrap().get_idPlaying();
+        
+        let mut prev_id = playing_id - 1;
+
+        if prev_id < 0 {
+            prev_id = *max_list_count - 1;
+        }
+
+        if let Some(record) = list.row_data(prev_id as usize) {
+            let file_path = record.filePath;
+
+            sink_clone.stop();
+
+            let file = match fs::File::open(file_path.to_string()) {
+                Ok(file) => file,
+                Err(e) => {
+                    println!("Failed to open file: {}", e);
+    
+                    return;
+                }
+            };
+            
+            let source = match Decoder::new(io::BufReader::new(file)) {
+                Ok(source) => source,
+                Err(e) => {
+                    println!("Failed to decode audio: {}", e);
+                    return;
+                }
+            };
+            
+    
+            let total_duration = source.total_duration().unwrap();
+            let formatted_time = format_duration(total_duration);
+    
+            ui_weak_clone.unwrap().set_total_duration(SharedString::from(formatted_time.to_string()));
+            
+            sink_clone.append(source);
+            sink_clone.play();
+    
+            ui_weak_clone.unwrap().set_idPlaying(prev_id as i32);
+            ui_weak_clone.unwrap().set_idPausing(prev_id as i32);
+        
+            ui_weak_clone.unwrap().set_isPlaying(true);
+            ui_weak_clone.unwrap().set_isPausing(false);
+            ui_weak_clone.unwrap().set_expanded(true);
+
+            let _ = tx_total_duration_clone.send(total_duration.as_secs());
+        }
+    });
+
+    let ui_weak_clone  = Arc::clone(&arc_ui);
+    let sink_clone = Arc::clone(&arc_sink);
+    let max_list_count_clone = Arc::clone(&max_list_count);
+    let tx_total_duration_clone = tx_total_duration.clone();
+
+    ui.on_next(move || {
+        let max_list_count = max_list_count_clone.lock().unwrap();
+        let list: ModelRc<Record> = ui_weak_clone.unwrap().get_list();
+        let playing_id = ui_weak_clone.unwrap().get_idPlaying();
+        
+        let mut next_id = playing_id + 1;
+
+        if next_id >= *max_list_count {
+            next_id = 0;
+        } 
+
+        if let Some(record) = list.row_data(next_id as usize) {
+            let file_path = record.filePath;
+
+            sink_clone.stop();
+
+            let file = match fs::File::open(file_path.to_string()) {
+                Ok(file) => file,
+                Err(e) => {
+                    println!("Failed to open file: {}", e);
+    
+                    return;
+                }
+            };
+            
+            let source = match Decoder::new(io::BufReader::new(file)) {
+                Ok(source) => source,
+                Err(e) => {
+                    println!("Failed to decode audio: {}", e);
+                    return;
+                }
+            };
+            
+    
+            let total_duration = source.total_duration().unwrap();
+            let formatted_time = format_duration(total_duration);
+    
+            ui_weak_clone.unwrap().set_total_duration(SharedString::from(formatted_time.to_string()));
+            
+            sink_clone.append(source);
+            sink_clone.play();
+    
+            ui_weak_clone.unwrap().set_idPlaying(next_id as i32);
+            ui_weak_clone.unwrap().set_idPausing(next_id as i32);
+        
+            ui_weak_clone.unwrap().set_isPlaying(true);
+            ui_weak_clone.unwrap().set_isPausing(false);
+            ui_weak_clone.unwrap().set_expanded(true);
+
+            let _ = tx_total_duration_clone.send(total_duration.as_secs());
+        }
     });
 
     ui.run()
