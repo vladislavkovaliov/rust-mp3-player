@@ -13,6 +13,8 @@ rfd = "0.14.1"
 slint = "1.6"
 rodio = "0.19"
 mp3-duration = "0.1.10"
+id3 = "1.14.0"
+base64 = "0.22.1"
 
 [build-dependencies]
 slint-build = "1.6"

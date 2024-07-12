@@ -1,10 +1,11 @@
 use rfd::FileDialog;
-use std::{fs, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex }, time::Duration};
-use slint::{ComponentHandle, Model, ModelRc, SharedString};
+use std::{fs, io::{Write}, sync::{atomic::{AtomicBool, Ordering}, mpsc, Arc, Mutex }, time::Duration};
+use slint::{ComponentHandle, Image, Model, ModelRc, SharedString};
 use std::rc::Rc;
 use slint::VecModel;
 use std::io;
 use rodio::{Decoder, OutputStream, Sink, Source};
+use id3::{Tag, TagLike};
 
 slint::include_modules!();
 
@@ -33,10 +34,68 @@ fn format_duration(duration: Duration) -> String {
     return format!("{:02}:{:02}", minutes, seconds);
 }
 
+fn get_image(file_path: String) -> Result<Image, slint::LoadImageError> {
+    match Tag::read_from_path(file_path) {
+        Ok(tag) => {
+            if let Some(artist) = tag.artist() {
+                println!("Artist: {}", artist);
+            } else {
+                println!("Artist tag not found");
+            }
+
+            if let Some(title) = tag.title() {
+                println!("Title: {}", title);
+            } else {
+                println!("Title tag not found");
+            }
+
+            if let Some(album) = tag.album() {
+                println!("Album: {}", album);
+            } else {
+                println!("Album tag not found");
+            }
+
+            if let Some(picture) = tag.pictures().next() {    
+                let output_path = "pictures/album_cover.jpg";
+                
+                let mut file = fs::File::create(output_path).expect("Failed to create file");
+                
+                println!("{:?}", &picture.data);
+                
+                file.write(&picture.data).expect("Failed to write data");
+
+                let path = std::path::Path::new(output_path);
+                let img = Image::load_from_path(path);
+
+                println!("Album cover saved to {}", output_path);
+
+                return img;
+            } else {
+                let output_path_none = "pictures/fake.png";
+                let path = std::path::Path::new(output_path_none);
+                let img = Image::load_from_path(path);
+
+                println!("No album cover found");
+
+                return img;
+            }        
+        }
+        Err(e) => {
+            println!("Failed to read tag: {}", e);
+
+            let output_path_none = "pictures/fake.png";
+            let path = std::path::Path::new(output_path_none);
+            let img = Image::load_from_path(path);
+            return img;
+        }
+    }
+}
+
+
 fn main() -> Result<(), slint::PlatformError> {
     let const_init_volume = round(0.1);
     let max_list_count = Arc::new(Mutex::new(0));
-
+    let t = Box::new(1);
     let (tx_total_duration, rx_total_duration) = mpsc::channel::<u64>();
 
     let ui = AppWindow::new()?;
@@ -96,37 +155,6 @@ fn main() -> Result<(), slint::PlatformError> {
         }
     });
 
-    // std::thread::spawn(move || {
-    //     while running_clone.load(Ordering::SeqCst) {
-    //         let pos = sink_clone.get_pos();
-
-    //         let formatted_time = format_duration(pos);
-            
-    //         if let Ok(temp) = rx.recv() {
-    //             match temp {
-    //                 State::Playing => {
-    //                     let _ = ui_weak_clone.upgrade_in_event_loop(move |window| {
-    //                         window.set_current_duration(SharedString::from(formatted_time.to_string()));
-
-    //                         // sink_clone.get_pos()
-    //                     });
-    //                 }
-    //                 State::Stop => {
-    //                     let _ = ui_weak_clone.upgrade_in_event_loop(move |window| {
-    //                         window.set_current_duration(SharedString::from("00:00".to_string()));
-    //                     });
-    //                 }
-    //                 State::Pause => {
-    //                     println!("Pause");
-    //                 }
-    //             }
-    //         }
-    //         println!("main thread");
-    //         std::thread::sleep(Duration::from_millis(100));
-    //     }
-       
-    // });
-
     let ui_weak_clone  = Arc::clone(&arc_ui);
     let max_list_count_clone = Arc::clone(&max_list_count);
 
@@ -143,7 +171,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
             for path in paths {
                 let path = path.unwrap().path();
-
+                println!("{}", path.to_string_lossy().to_string());
                 if let Some(extension) = path.extension() {
                     if extension == "mp3" {
                         let file_duration = match mp3_duration::from_path(&path) {
@@ -224,6 +252,9 @@ fn main() -> Result<(), slint::PlatformError> {
             }
         };
         
+        let img = get_image(text.to_string());
+
+        ui_weak_clone.unwrap().set_poster_path(img.unwrap());
 
         let total_duration = source.total_duration().unwrap();
         let formatted_time = format_duration(total_duration);
@@ -241,7 +272,6 @@ fn main() -> Result<(), slint::PlatformError> {
         ui_weak_clone.unwrap().set_expanded(true);
 
         let _ = tx_total_duration_clone.send(total_duration.as_secs());
-        
     });
        
     let ui_weak_clone  = Arc::clone(&arc_ui);
@@ -330,6 +360,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let ui_weak_clone  = Arc::clone(&arc_ui);
     let sink_clone = Arc::clone(&arc_sink);
+
     let mut prev_volume = 0.0;
 
     ui.on_volumeMute(move || {
@@ -356,6 +387,7 @@ fn main() -> Result<(), slint::PlatformError> {
     let ui_weak_clone  = Arc::clone(&arc_ui);
     let sink_clone = Arc::clone(&arc_sink);
     let max_list_count_clone = Arc::clone(&max_list_count);
+
     let tx_total_duration_clone = tx_total_duration.clone();
 
     ui.on_prev(move || {

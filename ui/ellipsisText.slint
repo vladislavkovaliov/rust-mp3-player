@@ -1,17 +1,16 @@
 export component EllipsisText inherits Rectangle {
     in property <string> text: "";
 
-    width: 464px - 96px;
+    width: 344px - 96px;
     clip: true;
-
     Text {
         width: parent.width;
+        height: parent.height;
         vertical-alignment: center;
-        horizontal-alignment: right;
+        horizontal-alignment: left;
         overflow: elide;
         text: root.text;
-        font-size: 16px;
+        font-size: 14px;
         color: black;
-        height: parent.height;
     }
 }
