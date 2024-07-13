@@ -95,7 +95,6 @@ fn get_image(file_path: String) -> Result<Image, slint::LoadImageError> {
 fn main() -> Result<(), slint::PlatformError> {
     let const_init_volume = round(0.1);
     let max_list_count = Arc::new(Mutex::new(0));
-    let t = Box::new(1);
     let (tx_total_duration, rx_total_duration) = mpsc::channel::<u64>();
 
     let ui = AppWindow::new()?;
@@ -109,7 +108,6 @@ fn main() -> Result<(), slint::PlatformError> {
 
     sink.set_volume(const_init_volume);
     ui.set_volume((const_init_volume * 100.0) as i32);
-    // ui.set_expanded(false);
 
     let arc_sink = Arc::new(sink);
     let arc_ui = Arc::new(ui_weak);
@@ -271,7 +269,6 @@ fn main() -> Result<(), slint::PlatformError> {
 
         ui_weak_clone.unwrap().set_isPlaying(true);
         ui_weak_clone.unwrap().set_isPausing(false);
-        // ui_weak_clone.unwrap().set_expanded(true);
 
         let _ = tx_total_duration_clone.send(total_duration.as_secs());
     });
@@ -317,7 +314,6 @@ fn main() -> Result<(), slint::PlatformError> {
             
             ui_weak_clone.unwrap().set_isPlaying(false);
             ui_weak_clone.unwrap().set_isPausing(false);
-            // ui_weak_clone.unwrap().set_expanded(false);
             ui_weak_clone.unwrap().set_idPlaying(-1 as i32);
         }
     });
@@ -439,7 +435,6 @@ fn main() -> Result<(), slint::PlatformError> {
         
             ui_weak_clone.unwrap().set_isPlaying(true);
             ui_weak_clone.unwrap().set_isPausing(false);
-            // ui_weak_clone.unwrap().set_expanded(true);
 
             let _ = tx_total_duration_clone.send(total_duration.as_secs());
         }
@@ -497,7 +492,6 @@ fn main() -> Result<(), slint::PlatformError> {
         
             ui_weak_clone.unwrap().set_isPlaying(true);
             ui_weak_clone.unwrap().set_isPausing(false);
-            // ui_weak_clone.unwrap().set_expanded(true);
 
             let _ = tx_total_duration_clone.send(total_duration.as_secs());
         }

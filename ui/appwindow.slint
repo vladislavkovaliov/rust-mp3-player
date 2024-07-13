@@ -26,6 +26,8 @@ export struct Record  {
 }
 
 export component AppWindow inherits Window {
+    title: "Player";
+
     in property <int> volume;
     in-out property <string> album_cover;
 
@@ -164,22 +166,9 @@ export component AppWindow inherits Window {
                             Text {
                                 text: item.duration;
                                 color: black;
-                                font-size: 6px;
+                                font-size: 12px;
                                 vertical-alignment: top;
                             }
-
-                            // Rectangle {
-                            //     border-color: red;
-                            //     border-width: 1px;
-                            //     VerticalBox {
-
-                            //         Text {
-                            //             text: root.current_duration;
-                            //             font-size: 6px;
-                            //             color: black;
-                            //         }
-                            //     }
-                            // }
                         }
 
                         Rectangle {
@@ -187,6 +176,7 @@ export component AppWindow inherits Window {
                             height: 6px;
 
                             VerticalLayout {
+                                padding-right: 16px;
                                 Rectangle {
                                     height: 4px;
                                 }
@@ -226,7 +216,7 @@ export component AppWindow inherits Window {
             Rectangle {
                 width: parent.width;
                 height: 48px;
-                background: rgb(254, 202, 202);
+                background: rgb(254, 227, 227);
                 border-top-left-radius: 8px;
                 border-top-right-radius: 8px;
 
@@ -234,8 +224,32 @@ export component AppWindow inherits Window {
                     padding-top: 8px;
                     padding-bottom: 8px;
                     padding-left: 8px;
-                    padding-right: 8px;
+                    padding-right: 16px;
                     alignment: space-between;
+
+                    HorizontalLayout {
+                        if root.idPlaying != -1: TouchArea {
+                            width: 32px;
+                            height: 32px;
+                            clicked => {
+                                root.selectRecord(root.list[root.idPlaying].id, root.list[root.idPlaying].filePath);
+                            }
+
+                            PlayButton {
+                                id: root.list[root.idPlaying].id;
+                                idPlaying: root.idPlaying;
+                                isPausing: root.isPausing;
+                            }
+                        }
+
+                        Rectangle {
+                            width: 8px;
+                        }
+
+                        EllipsisText {
+                            text: root.list[root.idPausing].fileName;
+                        }
+                    }
 
                     ArrowButton {
                         expanded: root.expanded;
