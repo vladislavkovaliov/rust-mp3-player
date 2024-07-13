@@ -14,6 +14,9 @@ import { OpenFolderButton } from "./openFolder.slint";
 import { VolumeMute } from "./volumeMute.slint";
 import { VolumeMinus } from "./volumeMinus.slint";
 import { VolumeUp } from "./volumeUp.slint";
+import { ControlPanel } from "controlPanel.slint";
+import { ExtraControlPanel } from "extraControlPanel.slint";
+import { ArrowButton } from "arrowButton.slint";
 
 export struct Record  {
     id: int,
@@ -69,53 +72,47 @@ export component AppWindow inherits Window {
             delay: 300ms;
         }
 
-        Text {
-            text: "Folder path: " + path;
-            color: black;
-            font-size: 16px;
-            vertical-alignment: center;
-            horizontal-alignment: center;
-        }
+        // Text {
+        //     text: "Folder path: " + path;
+        //     color: black;
+        //     font-size: 16px;
+        //     vertical-alignment: center;
+        //     horizontal-alignment: center;
+        // }
 
         VerticalLayout {
-            Rectangle {
-                width: 200px;
-                height: 200px;
-                border-color: red;
-                border-width: 1px;
+            HorizontalLayout {
+                alignment: center;
 
-                Image {
-                    source: root.poster_path;
+                Rectangle {
                     width: 200px;
                     height: 200px;
+                    border-radius: 8px;
+                    Image {
+                        source: root.poster_path;
+                        width: 200px;
+                        height: 200px;
+                    }
                 }
             }
-        }
 
-        VerticalBox {
-            // Text {
-            //     text: "total " + root.total_duration;
-            //     font-size: 16px;
-            //     color: black;
-            // }
-
-            // Text {
-            //     text: "current " + root.current_duration;
-            //     font-size: 16px;
-            //     color: black;
-            // }
-
-            // Text {
-            //     text: root.isPausing ? "pausing" : root.isPlaying ? "playing" : "stop";
-            //     font-size: 16px;
-            //     color: black;
-            // }
-
-            // Text {
-            //     text: "volume = " + root.volume;
-            //     font-size: 16px;
-            //     color: black;
-            // }
+            ControlPanel {
+                id: root.idPlaying;
+                idPlaying: root.idPlaying;
+                isPausing: root.isPausing;
+                prev => {
+                    root.prev();
+                }
+                next => {
+                    root.next();
+                }
+                pause => {
+                    root.pause();
+                }
+                play => {
+                    root.play();
+                }
+            }
         }
 
         VerticalBox {
@@ -125,45 +122,6 @@ export component AppWindow inherits Window {
                     text: "Playlist";
                     font-size: 12px;
                     color: black;
-                }
-
-                HorizontalLayout {
-                    spacing: 8px;
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.volumeMute();
-                        }
-                        VolumeMute { }
-                    }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.volumeDown();
-                        }
-                        VolumeMinus { }
-                    }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.volumeUp();
-                        }
-                        VolumeUp { }
-                    }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.selectPath();
-                        }
-                        OpenFolderButton { }
-                    }
                 }
             }
         }
@@ -279,53 +237,10 @@ export component AppWindow inherits Window {
                     padding-right: 8px;
                     alignment: space-between;
 
-                    HorizontalLayout {
-                        alignment: space-around;
-                        if root.idPlaying != -1: TouchArea {
-                            width: 32px;
-                            height: 32px;
-                            clicked => {
-                                if root.isPlaying == true {
-                                    root.pause();
-                                } else {
-                                    root.play();
-                                }
-                            }
-                            PlayButton {
-                                id: root.idPlaying;
-                                idPlaying: root.idPlaying;
-                                isPausing: root.isPausing;
-                            }
-                        }
-
-                        if root.idPlaying != -1: Rectangle {
-                            width: 8px;
-                        }
-
-                        if root.idPlaying != -1: EllipsisText {
-                            text: root.list[root.idPlaying].fileName;
-                        }
-                    }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
+                    ArrowButton {
+                        expanded: root.expanded;
+                        toggle => {
                             root.expanded = !root.expanded;
-                        }
-                        Rectangle {
-                            width: 32px;
-                            height: 32px;
-                            if root.expanded == true: Image {
-                                width: 16px;
-                                height: 16px;
-                                source: @image-url("../icons/arrowDown.svg");
-                            }
-                            if root.expanded == false: Image {
-                                width: 16px;
-                                height: 16px;
-                                source: @image-url("../icons/arrowUp.svg");
-                            }
                         }
                     }
                 }
@@ -336,71 +251,18 @@ export component AppWindow inherits Window {
                 padding-bottom: 8px;
                 padding-left: 8px;
                 padding-right: 8px;
-                HorizontalLayout {
-                    spacing: 8px;
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.play();
-                        }
-                        OnlyPlayButton {
-                            id: root.idPlaying;
-                            idPlaying: root.idPlaying;
-                            isPausing: root.isPausing;
-                        }
+                ExtraControlPanel {
+                    volumeDown => {
+                        root.volumeDown();
                     }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.pause();
-                        }
-                        PauseButton {
-                            id: root.idPlaying;
-                            idPlaying: root.idPlaying;
-                            isPausing: root.isPausing;
-                        }
+                    volumeUp => {
+                        root.volumeUp();
                     }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.stop();
-                        }
-                        StopButton {
-                            id: root.idPlaying;
-                            idPlaying: root.idPlaying;
-                            isPausing: root.isPausing;
-                        }
+                    volumeMute => {
+                        root.volumeMute();
                     }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.prev();
-                        }
-                        PrevButton {
-                            id: root.idPlaying;
-                            idPlaying: root.idPlaying;
-                            isPausing: root.isPausing;
-                        }
-                    }
-
-                    TouchArea {
-                        width: 32px;
-                        height: 32px;
-                        clicked => {
-                            root.next();
-                        }
-                        NextButton {
-                            id: root.idPlaying;
-                            idPlaying: root.idPlaying;
-                            isPausing: root.isPausing;
-                        }
+                    selectPath => {
+                        root.selectPath();
                     }
                 }
             }

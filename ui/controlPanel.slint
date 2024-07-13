@@ -1,0 +1,87 @@
+import { PrevButton } from "prevButton.slint";
+import { NextButton } from "nextButton.slint";
+import { PauseButton } from "pauseButton.slint";
+import { OnlyPlayButton } from "onlyPlayButton.slint";
+export component ControlPanel {
+    in property <int> id;
+    in property <bool> isPausing;
+    in property <int> idPlaying;
+
+    callback prev();
+    callback next();
+    callback pause();
+    callback play();
+
+    HorizontalLayout {
+        alignment: center;
+        padding-top: -8px;
+
+        Rectangle {
+            border-radius: 24px;
+            background: white;
+            drop-shadow-color: rgba(236, 236, 236, 1);
+            drop-shadow-blur: 32px;
+            drop-shadow-offset-y: 2px;
+            width: 128px;
+
+            HorizontalLayout {
+                spacing: 8px;
+                padding-left: 8px;
+                padding-right: 8px;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                TouchArea {
+                    width: 32px;
+                    height: 32px;
+                    clicked => {
+                        root.prev();
+                    }
+                    PrevButton {
+                        id: root.idPlaying;
+                        idPlaying: root.idPlaying;
+                        isPausing: root.isPausing;
+                    }
+                }
+
+                if !root.isPausing: TouchArea {
+                    width: 32px;
+                    height: 32px;
+                    clicked => {
+                        root.pause();
+                    }
+                    PauseButton {
+                        id: root.idPlaying;
+                        idPlaying: root.idPlaying;
+                        isPausing: root.isPausing;
+                    }
+                }
+
+                if root.isPausing: TouchArea {
+                    width: 32px;
+                    height: 32px;
+                    clicked => {
+                        root.play();
+                    }
+                    OnlyPlayButton {
+                        id: root.idPlaying;
+                        idPlaying: root.idPlaying;
+                        isPausing: root.isPausing;
+                    }
+                }
+
+                TouchArea {
+                    width: 32px;
+                    height: 32px;
+                    clicked => {
+                        root.next();
+                    }
+                    NextButton {
+                        id: root.idPlaying;
+                        idPlaying: root.idPlaying;
+                        isPausing: root.isPausing;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,25 @@
+export component ArrowButton {
+    in property <bool> expanded;
+    callback toggle();
+    TouchArea {
+        width: 32px;
+        height: 32px;
+        clicked => {
+            root.toggle();
+        }
+        Rectangle {
+            width: 32px;
+            height: 32px;
+            if root.expanded == true: Image {
+                width: 16px;
+                height: 16px;
+                source: @image-url("../icons/arrowDown.svg");
+            }
+            if root.expanded == false: Image {
+                width: 16px;
+                height: 16px;
+                source: @image-url("../icons/arrowUp.svg");
+            }
+        }
+    }
+}
