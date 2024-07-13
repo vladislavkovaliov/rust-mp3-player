@@ -109,7 +109,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     sink.set_volume(const_init_volume);
     ui.set_volume((const_init_volume * 100.0) as i32);
-    ui.set_expanded(false);
+    // ui.set_expanded(false);
 
     let arc_sink = Arc::new(sink);
     let arc_ui = Arc::new(ui_weak);
@@ -171,7 +171,9 @@ fn main() -> Result<(), slint::PlatformError> {
 
             for path in paths {
                 let path = path.unwrap().path();
+                
                 println!("{}", path.to_string_lossy().to_string());
+                
                 if let Some(extension) = path.extension() {
                     if extension == "mp3" {
                         let file_duration = match mp3_duration::from_path(&path) {
@@ -269,7 +271,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
         ui_weak_clone.unwrap().set_isPlaying(true);
         ui_weak_clone.unwrap().set_isPausing(false);
-        ui_weak_clone.unwrap().set_expanded(true);
+        // ui_weak_clone.unwrap().set_expanded(true);
 
         let _ = tx_total_duration_clone.send(total_duration.as_secs());
     });
@@ -315,7 +317,7 @@ fn main() -> Result<(), slint::PlatformError> {
             
             ui_weak_clone.unwrap().set_isPlaying(false);
             ui_weak_clone.unwrap().set_isPausing(false);
-            ui_weak_clone.unwrap().set_expanded(false);
+            // ui_weak_clone.unwrap().set_expanded(false);
             ui_weak_clone.unwrap().set_idPlaying(-1 as i32);
         }
     });
@@ -437,7 +439,7 @@ fn main() -> Result<(), slint::PlatformError> {
         
             ui_weak_clone.unwrap().set_isPlaying(true);
             ui_weak_clone.unwrap().set_isPausing(false);
-            ui_weak_clone.unwrap().set_expanded(true);
+            // ui_weak_clone.unwrap().set_expanded(true);
 
             let _ = tx_total_duration_clone.send(total_duration.as_secs());
         }
@@ -495,7 +497,7 @@ fn main() -> Result<(), slint::PlatformError> {
         
             ui_weak_clone.unwrap().set_isPlaying(true);
             ui_weak_clone.unwrap().set_isPausing(false);
-            ui_weak_clone.unwrap().set_expanded(true);
+            // ui_weak_clone.unwrap().set_expanded(true);
 
             let _ = tx_total_duration_clone.send(total_duration.as_secs());
         }

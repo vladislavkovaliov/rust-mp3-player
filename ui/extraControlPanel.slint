@@ -1,0 +1,48 @@
+import { VolumeMute } from "volumeMute.slint";
+import { VolumeMinus } from "volumeMinus.slint";
+import { VolumeUp } from "volumeUp.slint";
+import { OpenFolderButton } from "openFolder.slint";
+export component ExtraControlPanel {
+    callback volumeDown();
+    callback volumeUp();
+    callback volumeMute();
+    callback selectPath();
+    HorizontalLayout {
+        spacing: 8px;
+        TouchArea {
+            width: 32px;
+            height: 32px;
+            clicked => {
+                root.volumeMute();
+            }
+            VolumeMute { }
+        }
+
+        TouchArea {
+            width: 32px;
+            height: 32px;
+            clicked => {
+                root.volumeDown();
+            }
+            VolumeMinus { }
+        }
+
+        TouchArea {
+            width: 32px;
+            height: 32px;
+            clicked => {
+                root.volumeUp();
+            }
+            VolumeUp { }
+        }
+
+        TouchArea {
+            width: 32px;
+            height: 32px;
+            clicked => {
+                root.selectPath();
+            }
+            OpenFolderButton { }
+        }
+    }
+}
