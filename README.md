@@ -44,3 +44,7 @@ Don't forget to edit this README to replace it by yours
     ```
     cargo watch -x 'run' --ignore "pictures/*"
     ```
+
+## Preview
+
+<img width="177" alt="image" src="https://github.com/user-attachments/assets/57ba8025-b14d-45da-bd21-8d5fb0d81875">
