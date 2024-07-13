@@ -38,3 +38,9 @@ We hope that this template helps you get started and you enjoy exploring making 
 about the Slint APIs and the `.slint` markup language check out our [online documentation](https://slint.dev/docs).
 
 Don't forget to edit this README to replace it by yours
+
+## Run
+
+    ```
+    cargo watch -x 'run' --ignore "pictures/*"
+    ```
